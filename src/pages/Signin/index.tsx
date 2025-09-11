@@ -11,9 +11,14 @@ function Signin() {
   const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
 
   const signin = async () => {
-    if (email == "" || password == "") return;
-    const { user, token } = await authRepository.signin(email, password);
-    setCurrentUser(user);
+    try {
+      if (email == "" || password == "") return;
+      const { user, token } = await authRepository.signin(email, password);
+      localStorage.setItem("token", token);
+      setCurrentUser(user);
+    } catch (error) {
+      console.error("ログインに失敗しました", error);
+    }
   };
 
   if (currentUser != null) return <Navigate to="/" />;
