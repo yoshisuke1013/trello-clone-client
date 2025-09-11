@@ -1,6 +1,14 @@
-import './Home.css';
-import SortableBoard from './SortableBoard';
+import { Navigate } from "react-router-dom";
+import { useAtomValue } from "jotai";
+import { currentUserAtom } from "../../modules/auth/current-user.state";
+import SortableBoard from "./SortableBoard";
+import "./Home.css";
+
 function Home() {
+  const currentUser = useAtomValue(currentUserAtom);
+
+  if (currentUser == null) return <Navigate to={"/signin"} />;
+
   return (
     <div>
       <header className="header">
