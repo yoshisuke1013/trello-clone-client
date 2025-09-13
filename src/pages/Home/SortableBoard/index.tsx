@@ -4,6 +4,7 @@ import { listsAtom } from "../../../modules/lists/list.state";
 import { listRepository } from "../../../modules/lists/list.repository";
 import { SortableList } from "./SortableList";
 import { AddList } from "./AddList";
+import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 
 export default function SortableBoard() {
   const currentUser = useAtomValue(currentUserAtom);
@@ -29,13 +30,24 @@ export default function SortableBoard() {
   };
 
   return (
-    <div className="board-container">
-      <div style={{ display: "flex", gap: "12px" }}>
-        {sortedLists.map((list) => (
-          <SortableList list={list} onDelete={deleteList} key={list.id} />
-        ))}
+    <DragDropContext onDragEnd={() => {}}>
+      <div className="board-container">
+        <Droppable droppableId="board" type="list" direction="horizontal">
+          {(provided) => (
+            <div
+              style={{ display: "flex", gap: "12px" }}
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+            >
+              {sortedLists.map((list) => (
+                <SortableList list={list} onDelete={deleteList} key={list.id} />
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+        <AddList onCreate={createList} />
       </div>
-      <AddList onCreate={createList} />
-    </div>
+    </DragDropContext>
   );
 }
