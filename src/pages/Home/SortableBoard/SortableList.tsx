@@ -1,7 +1,9 @@
+import { useAtomValue } from "jotai";
+import { Draggable } from "@hello-pangea/dnd";
 import type { List } from "../../../modules/lists/list.entity";
+import { cardsAtom } from "../../../modules/cards/card.state";
 import { SortableCard } from "./SortableCard";
 import { AddCard } from "./AddCard";
-import { Draggable } from "@hello-pangea/dnd";
 
 interface SortableListProps {
   list: List;
@@ -14,6 +16,11 @@ export function SortableList({
   onDelete,
   onCreateCard,
 }: SortableListProps) {
+  const cards = useAtomValue(cardsAtom);
+  const sortedListCards = cards
+    .filter((card) => card.listId == list.id)
+    .sort((a, b) => a.position - b.position);
+
   return (
     <Draggable draggableId={list.id} index={list.position}>
       {(provided, snapshot) => (
@@ -53,7 +60,9 @@ export function SortableList({
                 minHeight: "1px",
               }}
             >
-              <SortableCard />
+              {sortedListCards.map((card) => (
+                <SortableCard card={card} key={card.id} />
+              ))}
             </div>
             <AddCard listId={list.id} onCreate={onCreateCard} />
           </div>

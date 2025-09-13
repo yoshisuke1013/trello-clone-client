@@ -3,7 +3,9 @@ import { Navigate } from "react-router-dom";
 import { useAtomValue, useSetAtom } from "jotai";
 import { currentUserAtom } from "../../modules/auth/current-user.state";
 import { listsAtom } from "../../modules/lists/list.state";
+import { cardsAtom } from "../../modules/cards/card.state";
 import { listRepository } from "../../modules/lists/list.repository";
+import { cardRepository } from "../../modules/cards/card.repository";
 import SortableBoard from "./SortableBoard";
 import { Sidebar } from "./Sidebar";
 import "./Home.css";
@@ -12,14 +14,25 @@ function Home() {
   const [showSidebar, setShowSidebar] = useState(false);
   const currentUser = useAtomValue(currentUserAtom);
   const setLists = useSetAtom(listsAtom);
+  const setCards = useSetAtom(cardsAtom);
 
   const fetchLists = async () => {
     const lists = await listRepository.find(currentUser!.boardId);
     setLists(lists);
   };
 
+  const fetchCards = async () => {
+    const cards = await cardRepository.find(currentUser!.boardId);
+    setCards(cards);
+  };
+
   useEffect(() => {
-    fetchLists();
+    try {
+      fetchLists();
+      fetchCards();
+    } catch (error) {
+      console.error("リストとカードの取得に失敗しました", error);
+    }
   }, [currentUser]);
 
   if (currentUser == null) return <Navigate to={"/signin"} />;
