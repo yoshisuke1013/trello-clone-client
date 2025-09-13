@@ -12,6 +12,11 @@ export const listRepository = {
     return new List(result.data);
   },
 
+  async update(lists: List[]): Promise<List[]> {
+    const result = await api.put("/lists", { lists });
+    return result.data.map((list: List) => new List(list));
+  },
+
   async delete(id: string): Promise<boolean> {
     await api.delete(`/lists/${id}`);
     return true;
