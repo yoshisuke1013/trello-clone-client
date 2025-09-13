@@ -3,6 +3,7 @@ import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
 import { currentUserAtom } from "../../../modules/auth/current-user.state";
 import { listsAtom } from "../../../modules/lists/list.state";
 import { listRepository } from "../../../modules/lists/list.repository";
+import { cardRepository } from "../../../modules/cards/card.repository";
 import { SortableList } from "./SortableList";
 import { AddList } from "./AddList";
 
@@ -27,6 +28,11 @@ export default function SortableBoard() {
     } catch (error) {
       console.error("リストの削除に失敗しました", error);
     }
+  };
+
+  const createCard = async (listId: string, title: string) => {
+    const newCard = await cardRepository.create(listId, title);
+    console.log(newCard);
   };
 
   const handleDragEnd = async (result: DropResult) => {
@@ -63,7 +69,12 @@ export default function SortableBoard() {
               ref={provided.innerRef}
             >
               {sortedLists.map((list) => (
-                <SortableList list={list} onDelete={deleteList} key={list.id} />
+                <SortableList
+                  list={list}
+                  onDelete={deleteList}
+                  onCreateCard={createCard}
+                  key={list.id}
+                />
               ))}
               {provided.placeholder}
             </div>
