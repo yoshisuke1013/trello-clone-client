@@ -23,6 +23,11 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
     }
   };
 
+  const logout = () => {
+    localStorage.removeItem("token");
+    setCurrentUser(undefined);
+  };
+
   return (
     <>
       <div className="sidebar-overlay" onClick={onClose} />
@@ -73,7 +78,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
 
         <div className="sidebar-content">
           <div className="sidebar-section">
-            <button className="sidebar-board-item">
+            <button className="sidebar-board-item" onClick={logout}>
               <span className="sidebar-board-name">ログアウト</span>
             </button>
           </div>
