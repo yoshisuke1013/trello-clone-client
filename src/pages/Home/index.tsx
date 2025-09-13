@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { currentUserAtom } from "../../modules/auth/current-user.state";
+import { listsAtom } from "../../modules/lists/list.state";
+import { listRepository } from "../../modules/lists/list.repository";
 import SortableBoard from "./SortableBoard";
 import { Sidebar } from "./Sidebar";
 import "./Home.css";
@@ -9,6 +11,16 @@ import "./Home.css";
 function Home() {
   const [showSidebar, setShowSidebar] = useState(false);
   const currentUser = useAtomValue(currentUserAtom);
+  const setLists = useSetAtom(listsAtom);
+
+  const fetchLists = async () => {
+    const lists = await listRepository.find(currentUser!.boardId);
+    setLists(lists);
+  };
+
+  useEffect(() => {
+    fetchLists();
+  }, [currentUser]);
 
   if (currentUser == null) return <Navigate to={"/signin"} />;
 
