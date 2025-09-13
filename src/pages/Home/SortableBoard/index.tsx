@@ -1,10 +1,10 @@
 import { useAtom, useAtomValue } from "jotai";
+import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
 import { currentUserAtom } from "../../../modules/auth/current-user.state";
 import { listsAtom } from "../../../modules/lists/list.state";
 import { listRepository } from "../../../modules/lists/list.repository";
 import { SortableList } from "./SortableList";
 import { AddList } from "./AddList";
-import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 
 export default function SortableBoard() {
   const currentUser = useAtomValue(currentUserAtom);
@@ -29,8 +29,22 @@ export default function SortableBoard() {
     }
   };
 
+  const handleDragEnd = async (result: DropResult) => {
+    const { destination, source } = result;
+    if (destination == null) return;
+
+    const [reorderedList] = sortedLists.splice(source.index, 1);
+    sortedLists.splice(destination.index, 0, reorderedList);
+
+    const updatedLists = sortedLists.map((list, index) => ({
+      ...list,
+      position: index,
+    }));
+    setLists(updatedLists);
+  };
+
   return (
-    <DragDropContext onDragEnd={() => {}}>
+    <DragDropContext onDragEnd={handleDragEnd}>
       <div className="board-container">
         <Droppable droppableId="board" type="list" direction="horizontal">
           {(provided) => (
