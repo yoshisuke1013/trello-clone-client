@@ -15,11 +15,24 @@ export default function SortableBoard() {
     setLists((prevLists) => [...prevLists, newList]);
   };
 
+  const deleteList = async (listId: string) => {
+    const confirmMessage =
+      "リストを削除しますか？このリスト内のカードもすべて削除されます。";
+    try {
+      if (window.confirm(confirmMessage)) {
+        await listRepository.delete(listId);
+        setLists((prevLists) => prevLists.filter((list) => list.id != listId));
+      }
+    } catch (error) {
+      console.error("リストの削除に失敗しました", error);
+    }
+  };
+
   return (
     <div className="board-container">
       <div style={{ display: "flex", gap: "12px" }}>
         {sortedLists.map((list) => (
-          <SortableList list={list} key={list.id} />
+          <SortableList list={list} onDelete={deleteList} key={list.id} />
         ))}
       </div>
       <AddList onCreate={createList} />

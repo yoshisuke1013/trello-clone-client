@@ -11,4 +11,9 @@ export const listRepository = {
     const result = await api.post("/lists", { boardId, title });
     return new List(result.data);
   },
+
+  async delete(id: string): Promise<boolean> {
+    await api.delete(`/lists/${id}`);
+    return true;
+  },
 };
