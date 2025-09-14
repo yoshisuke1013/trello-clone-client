@@ -1,6 +1,32 @@
+import { useAtom, useSetAtom } from "jotai";
+import type { Card } from "../../../modules/cards/card.entity";
+import { cardRepository } from "../../../modules/cards/card.repository";
+import {
+  cardsAtom,
+  selectedCardIdAtom,
+} from "../../../modules/cards/card.state";
+
 export const CardModal = () => {
+  const [selectedCardId, setSelectedCardId] = useAtom(selectedCardIdAtom);
+  const setCards = useSetAtom(cardsAtom);
+
+  const deleteCard = async () => {
+    const confirmMessage = "カードを削除しますか？この操作は取り消せません。";
+    try {
+      if (window.confirm(confirmMessage)) {
+        await cardRepository.delete(selectedCardId!);
+        setCards((prevCards: Card[]) =>
+          prevCards.filter((card) => card.id != selectedCardId)
+        );
+        setSelectedCardId(null);
+      }
+    } catch (error) {
+      console.error("カードの削除に失敗しました", error);
+    }
+  };
+
   return (
-    <div className="card-modal-overlay">
+    <div className="card-modal-overlay" onClick={() => setSelectedCardId(null)}>
       <div className="card-modal" onClick={(e) => e.stopPropagation()}>
         <div className="card-modal-header">
           <div className="card-modal-list-info">
@@ -10,7 +36,7 @@ export const CardModal = () => {
                 width="16"
                 height="16"
                 fill="currentColor"
-                style={{ marginRight: '6px' }}
+                style={{ marginRight: "6px" }}
               >
                 <path d="M19 12v7H5v-7M12 3v9m4-4l-4 4-4-4" />
               </svg>
@@ -18,7 +44,11 @@ export const CardModal = () => {
             </button>
           </div>
           <div className="card-modal-header-actions">
-            <button className="card-modal-header-button" title="削除">
+            <button
+              className="card-modal-header-button"
+              title="削除"
+              onClick={deleteCard}
+            >
               <svg
                 viewBox="0 0 24 24"
                 width="16"
@@ -28,7 +58,12 @@ export const CardModal = () => {
                 <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
               </svg>
             </button>
-            <button className="card-modal-close">×</button>
+            <button
+              className="card-modal-close"
+              onClick={() => setSelectedCardId(null)}
+            >
+              ×
+            </button>
           </div>
         </div>
 

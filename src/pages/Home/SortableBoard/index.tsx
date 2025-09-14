@@ -2,6 +2,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
 import { currentUserAtom } from "../../../modules/auth/current-user.state";
 import { listsAtom } from "../../../modules/lists/list.state";
+import { cardsAtom } from "../../../modules/cards/card.state";
 import { listRepository } from "../../../modules/lists/list.repository";
 import { cardRepository } from "../../../modules/cards/card.repository";
 import { SortableList } from "./SortableList";
@@ -10,6 +11,7 @@ import { AddList } from "./AddList";
 export default function SortableBoard() {
   const currentUser = useAtomValue(currentUserAtom);
   const [lists, setLists] = useAtom(listsAtom);
+  const [cards, setCards] = useAtom(cardsAtom);
   const sortedLists = [...lists].sort((a, b) => a.position - b.position);
 
   const createList = async (title: string) => {
@@ -32,7 +34,7 @@ export default function SortableBoard() {
 
   const createCard = async (listId: string, title: string) => {
     const newCard = await cardRepository.create(listId, title);
-    console.log(newCard);
+    setCards((prevCards) => [...prevCards, newCard]);
   };
 
   const handleDragEnd = async (result: DropResult) => {
