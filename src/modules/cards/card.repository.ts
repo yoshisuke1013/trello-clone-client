@@ -12,6 +12,11 @@ export const cardRepository = {
     return new Card(result.data);
   },
 
+  async update(cards: Card[]): Promise<Card[]> {
+    const result = await api.put("/cards", { cards });
+    return result.data.map((card: Card) => new Card(card));
+  },
+
   async delete(id: string): Promise<boolean> {
     await api.delete(`/cards/${id}`);
     return true;

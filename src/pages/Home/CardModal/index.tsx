@@ -1,14 +1,44 @@
-import { useAtom, useSetAtom } from "jotai";
+import { useState } from "react";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import type { Card } from "../../../modules/cards/card.entity";
 import { cardRepository } from "../../../modules/cards/card.repository";
 import {
   cardsAtom,
   selectedCardIdAtom,
+  selectedCardAtom,
 } from "../../../modules/cards/card.state";
 
 export const CardModal = () => {
   const [selectedCardId, setSelectedCardId] = useAtom(selectedCardIdAtom);
   const setCards = useSetAtom(cardsAtom);
+  const selectedCard = useAtomValue(selectedCardAtom);
+  const [title, setTitle] = useState(selectedCard?.title || "");
+  const [description, setDescription] = useState(
+    selectedCard?.description || ""
+  );
+  const [dueDate, setDueDate] = useState(selectedCard?.dueDate || "");
+  const [completed, setCompleted] = useState(selectedCard?.completed || false);
+
+  const updateCard = async () => {
+    const card = {
+      ...selectedCard!,
+      title,
+      description,
+      dueDate,
+      completed,
+    };
+    try {
+      const updatedCard = await cardRepository.update([card]);
+      setCards((prevCards: Card[]) =>
+        prevCards.map((card) =>
+          card.id == updatedCard[0].id ? updatedCard[0] : card
+        )
+      );
+      setSelectedCardId(null);
+    } catch (error) {
+      console.error("カードの更新に失敗しました", error);
+    }
+  };
 
   const deleteCard = async () => {
     const confirmMessage = "カードを削除しますか？この操作は取り消せません。";
@@ -30,7 +60,11 @@ export const CardModal = () => {
       <div className="card-modal" onClick={(e) => e.stopPropagation()}>
         <div className="card-modal-header">
           <div className="card-modal-list-info">
-            <button className="card-modal-save-button" title="変更を保存">
+            <button
+              className="card-modal-save-button"
+              title="変更を保存"
+              onClick={updateCard}
+            >
               <svg
                 viewBox="0 0 24 24"
                 width="16"
@@ -70,11 +104,18 @@ export const CardModal = () => {
         <div className="card-modal-content">
           <div className="card-modal-main">
             <div className="card-modal-title-section">
-              <input type="checkbox" className="card-modal-title-checkbox" />
+              <input
+                type="checkbox"
+                className="card-modal-title-checkbox"
+                checked={completed}
+                onChange={(e) => setCompleted(e.target.checked)}
+              />
               <textarea
                 placeholder="タイトルを入力"
                 className="card-modal-title"
                 maxLength={50}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
               />
             </div>
             <div className="card-modal-section">
@@ -84,7 +125,12 @@ export const CardModal = () => {
                   期限
                 </h3>
               </div>
-              <input type="date" className="card-modal-due-date" />
+              <input
+                type="date"
+                className="card-modal-due-date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+              />
             </div>
 
             <div className="card-modal-section">
@@ -98,6 +144,8 @@ export const CardModal = () => {
                 placeholder="説明を入力"
                 className="card-modal-description"
                 maxLength={200}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
               />
             </div>
           </div>
