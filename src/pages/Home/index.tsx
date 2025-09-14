@@ -3,11 +3,12 @@ import { Navigate } from "react-router-dom";
 import { useAtomValue, useSetAtom } from "jotai";
 import { currentUserAtom } from "../../modules/auth/current-user.state";
 import { listsAtom } from "../../modules/lists/list.state";
-import { cardsAtom } from "../../modules/cards/card.state";
+import { cardsAtom, selectedCardAtom } from "../../modules/cards/card.state";
 import { listRepository } from "../../modules/lists/list.repository";
 import { cardRepository } from "../../modules/cards/card.repository";
 import SortableBoard from "./SortableBoard";
 import { Sidebar } from "./Sidebar";
+import { CardModal } from "./CardModal";
 import "./Home.css";
 
 function Home() {
@@ -15,6 +16,7 @@ function Home() {
   const currentUser = useAtomValue(currentUserAtom);
   const setLists = useSetAtom(listsAtom);
   const setCards = useSetAtom(cardsAtom);
+  const selectedCard = useAtomValue(selectedCardAtom);
 
   const fetchLists = async () => {
     const lists = await listRepository.find(currentUser!.boardId);
@@ -59,7 +61,7 @@ function Home() {
       </div>
       <SortableBoard />
       {showSidebar && <Sidebar onClose={() => setShowSidebar(false)} />}
-      {/* <CardModal /> */}
+      {selectedCard && <CardModal />}
     </div>
   );
 }
