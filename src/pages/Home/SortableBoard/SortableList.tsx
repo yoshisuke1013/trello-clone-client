@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { Draggable } from "@hello-pangea/dnd";
+import { Draggable, Droppable } from "@hello-pangea/dnd";
 import type { List } from "../../../modules/lists/list.entity";
 import { cardsAtom } from "../../../modules/cards/card.state";
 import { SortableCard } from "./SortableCard";
@@ -55,15 +55,22 @@ export function SortableList({
                 </svg>
               </button>
             </div>
-            <div
-              style={{
-                minHeight: "1px",
-              }}
-            >
-              {sortedListCards.map((card) => (
-                <SortableCard card={card} key={card.id} />
-              ))}
-            </div>
+            <Droppable droppableId={list.id} type="card">
+              {(provided) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  style={{
+                    minHeight: "1px",
+                  }}
+                >
+                  {sortedListCards.map((card) => (
+                    <SortableCard card={card} key={card.id} />
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
             <AddCard listId={list.id} onCreate={onCreateCard} />
           </div>
         </div>

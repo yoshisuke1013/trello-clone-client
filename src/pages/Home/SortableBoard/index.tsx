@@ -1,5 +1,11 @@
 import { useAtom, useAtomValue } from "jotai";
-import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
+import {
+  DragDropContext,
+  Droppable,
+  type DraggableLocation,
+  type DropResult,
+} from "@hello-pangea/dnd";
+import type { Card } from "../../../modules/cards/card.entity";
 import { currentUserAtom } from "../../../modules/auth/current-user.state";
 import { listsAtom } from "../../../modules/lists/list.state";
 import { cardsAtom } from "../../../modules/cards/card.state";
@@ -37,8 +43,10 @@ export default function SortableBoard() {
     setCards((prevCards) => [...prevCards, newCard]);
   };
 
-  const handleDragEnd = async (result: DropResult) => {
-    const { destination, source } = result;
+  const handleListMove = async (
+    source: DraggableLocation,
+    destination: DraggableLocation
+  ) => {
     if (destination == null) return;
 
     const [reorderedList] = sortedLists.splice(source.index, 1);
@@ -57,6 +65,92 @@ export default function SortableBoard() {
     } catch (error) {
       console.error("リストの移動に失敗しました", error);
       setLists(originalLists);
+    }
+  };
+
+  const updateCardsPosition = (cards: Card[], updatedCards: Card[]) => {
+    return cards.map((card) => {
+      const cardIndex = updatedCards.findIndex((c) => c.id == card.id);
+      return cardIndex != -1
+        ? {
+            ...updatedCards[cardIndex],
+            position: cardIndex,
+          }
+        : card;
+    });
+  };
+
+  const moveCardInSameList = (
+    source: DraggableLocation,
+    destination: DraggableLocation
+  ) => {
+    const listCards = cards
+      .filter((card) => card.listId == source.droppableId)
+      .sort((a, b) => a.position - b.position);
+
+    const [removed] = listCards.splice(source.index, 1);
+    listCards.splice(destination.index, 0, removed);
+
+    return updateCardsPosition(cards, listCards);
+  };
+
+  const moveCardBetweenLists = (
+    source: DraggableLocation,
+    destination: DraggableLocation,
+    card: Card
+  ) => {
+    const sourceListCards = cards
+      .filter((c) => c.listId == source.droppableId && c.id !== card.id)
+      .sort((a, b) => a.position - b.position);
+    const updatedCards = updateCardsPosition(cards, sourceListCards);
+
+    const destinationListCards = updatedCards
+      .filter((c) => c.listId == destination.droppableId)
+      .sort((a, b) => a.position - b.position);
+
+    destinationListCards.splice(destination.index, 0, {
+      ...card,
+      listId: destination.droppableId,
+    });
+
+    return updateCardsPosition(updatedCards, destinationListCards);
+  };
+
+  const handleCardMove = async (
+    cardId: string,
+    source: DraggableLocation,
+    destination: DraggableLocation
+  ) => {
+    const targetCard = cards.find((card) => card.id == cardId);
+    if (targetCard == null) return;
+
+    const originalCards = [...cards];
+
+    try {
+      const updatedCards =
+        source.droppableId == destination.droppableId
+          ? moveCardInSameList(source, destination)
+          : moveCardBetweenLists(source, destination, targetCard);
+      setCards(updatedCards);
+      await cardRepository.update(updatedCards);
+    } catch (error) {
+      console.error("カードの移動でエラーが発生しました", error);
+      setCards(originalCards);
+    }
+  };
+
+  const handleDragEnd = async (result: DropResult) => {
+    const { destination, source, type, draggableId } = result;
+    if (destination == null) return;
+
+    if (type == "list") {
+      await handleListMove(source, destination);
+      return;
+    }
+
+    if (type == "card") {
+      await handleCardMove(draggableId, source, destination);
+      return;
     }
   };
 
